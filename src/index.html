@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Council UI</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont; margin: 12px; }
+    textarea { width: 100%; height: 110px; }
+    select, button { margin-top: 8px; }
+    pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 6px; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row > * { flex: 1; }
+    .row > button { flex: 0; }
+  </style>
+</head>
+<body>
+  <h3>Council Prompt</h3>
+  <textarea id="prompt" placeholder="Enter your query"></textarea>
+  <div class="row">
+    <select id="tag">
+      <option value="Tia">Tia</option>
+      <option value="Olly">Olly</option>
+      <option value="Mira">Mira</option>
+    </select>
+    <button id="send">Send</button>
+  </div>
+  <pre id="output">Ready.</pre>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    $("send").addEventListener("click", send);
+    function baseURL() {
+      return (localStorage.getItem("COUNCIL_BROKER") || "http://localhost:8081").replace(/\/+$/,'');
+    }
+    async function send() {
+      const tag = $("tag").value;
+      const query = $("prompt").value.trim();
+      $("output").textContent = "Thinking…";
+      try {
+        const json = await window.council.invoke("council:query", { tag, query, demo: true }, baseURL());
+        $("output").textContent = json.ok
+          ? (json.response || "(no response)")
+          : `Error: ${json.error || "unknown"}`;
+      } catch (e) {
+        $("output").textContent = "Failed to reach broker at " + baseURL() + "/query";
+      }
+    }
+  </script>
+</body>
+</html>
